@@ -1,3 +1,9 @@
+# data files
+*.nex
+*.tree
+Botany563/data/*
+Botany563/results/*
+
 # Compiled source #
 ###################
 *.com
