@@ -3,36 +3,26 @@ Prickles are sharp epidermal or cortical outgrowths that have evolved at least 2
 ## Description of dataset
  I will use LOG protein sequences from at least 28 representative genus with instance of independent prickle evolution. I will obtain my sequences from published genome assembly papers and solpangenomics database (https://solpangenomics.com/dist/pages/downloads/index.php). LOG orthologs will be identified using OrthoFinder. 
 
-Representative species list: 
-- Solanaceae Solanum prinophyllum 
-- Araliaceae 	Aralia spinosa DOI: 10.3389/fpls.2022.822942
-- Campanulaceae	Cyanea solanaceae	
-- Solanaceae	Datura stramonium	
-- Caprifoliaceae	Dipsacus fullonum	
-- Asteraceae	Latuca serriola	
-- Cleomaceae	Tarenaya hassleriana	
-- Convolvulaceae	Ipomoea setosa	
-- Brassicaceae	Brassica nigra	
-- Cyatheaceae	Alsophila spinulosa [Huang et al., 2022](https://doi.org/10.1038/s41477-022-01146-6)	
-- Zamiaceae	Zamia furfuracea	
-- Smilacaceae	Smilax rotundifolia	
-- Poaceae	Oyrza sativa	
-- Pandanaceae	Pandanus utilis	
-- Arecaceae	Socratea exorrhiza	
-- Arecaceae	Astrocaryum alatum	
-- Dioscoreaceae	Dioscorea basiclavicaulis	
-- Nymphaeaceae	Victoria amazonica	
-- Rosaceae	Rosa chinense [Hibrand Saint-Oyant et al., 2018](https://doi.org/10.1038/s41477-018-0166-1)
-- Fabaceae	Prosopis cineraria	
-- Rhamnaceae	Ziziphus jujubae	
-- Rutaceae	Zanthoxylum piperitum	
-- Euphorbiaceae	Euphorbia milii	
-- Malvaceae	Hibiscus cannabinus	
-- Euphorbiaceae	Hura crepitans	
-- Cucurbitaceae	Cucumis melo	
-- Bixaceae	Bixa orellana	
-- Grossulariaceae	Ribes lacustre	
-- Vitaceae Vitis romanetii
+| Clade  | Family            | Species  | Prickle state | Genome source |
+| :----- | :----- | :---- | :---- | :---- |
+| Asterids | Solanaceae | *Solanum prinophyllum* | Present | [Satterlee et al., 2024](https://www.science.org/doi/10.1126/science.ado1663)
+| Asterids | Solanaceae | *Solanum lycopersicum* | Absence | [Satterlee et al., 2024](https://www.science.org/doi/10.1126/science.ado1663)
+| Rosids | Vitaceae   | *Vitis romanetii*      | Present | In-house genome assembly
+| Rosids | Vitaceae   | *Vitis vinifera* var. Muscat | Absence | In-house genome assembly
+| Rosids | Brassicaceae | *Brassica nigra* Ni100 | Present |ONT assembly [Perumal et al. 2020]([text](https://doi.org/10.1038/s41477-020-0735-y))
+| Rosids | Brassicaceae | *Arabidopsis thaliana* | Absence | Araport11 [Cheng et al., 2017](https://doi.org/10.1111/tpj.13415)
+| Rosids | Rosaceae | *Rosa chinense* | Present | [Hibrand Saint-Oyant et al., 2018](https://doi.org/10.1038/s41477-018-0166-1)
+| Rosids | Rosaceae | *Fragaria vesca* | Absence | [Shulaev et al., 2011]([text](https://doi.org/10.1038/ng.740))
+|   | Rutaceae | *Zanthoxylum piperitum* | Present | 
+| ANA-grade | Nymphaeaceae | *Victoria cruziana* | Present | [Wen et al., 2025]([text](https://doi.org/10.1016/j.xplc.2025.101342))
+| ANA-grade | Nymphaeaceae | *Nymphaea colorata*  | Absence | [Zhang et al., 2020]([text](https://doi.org/10.1038/s41586-019-1852-5))
+| Ferns | Cyatheaceae | *Alsophila spinulosa* | Present | [Huang et al., 2022](https://doi.org/10.1038/s41477-022-01146-6)	
+|   |   |      | Absence | 
+
+
+## OrthoFinder
+
+
 ## Multiple Sequence Alignment (MSA)
 ### MUSCLE
 
@@ -129,3 +119,73 @@ The default gap scoring scheme has been changed in version 7.110 (2013 Oct).
 It tends to insert more gaps into gap-rich regions than previous versions.
 To disable this change, add the --leavegappyregion option.
 ```
+## Distance-based methods
+There are algorithms that produce the optimum tree without having to search the space of trees. Thus, the distance-based method is the fastest. However, it could be sensitive to unequal rates of evolution.
+
+The following commands are run inside R.
+1. Installing necessary packages 
+```
+install.packages("adegenet", dep=TRUE)
+install.packages("phangorn", dep=TRUE)
+```
+2. Load installed packages
+```
+library(ape)
+library(adegenet)
+library(phangorn)
+```
+3. Loading the sample data
+```
+dna <- fasta2DNAbin(file="LOGs_cds_aligned_muscle.fa")
+```
+4. Computing the genetic distances. 
+```
+D <- dist.dna(dna, model="GTR")
+```
+5. Get the NJ tree
+```
+tre <- nj(D)
+```
+6. To get the ladderized effect when plotting the tree
+```
+tre <- ladderize(tre)
+```
+7. Plot the tree
+```
+plot(tre, cex=.6)
+title("A simple NJ tree")
+```
+## Parsimony method
+Parsimony-based method wants to find a tree with the minimum changes to explain the data we see at the tips of the tree. It assumes that all characters evolve independently. Parsimony-based method could be susceptible to long-branch attraction. 
+
+The following commands are run inside R.
+1. Installing necessary packages 
+```
+install.packages("adegenet", dep=TRUE)
+install.packages("phangorn", dep=TRUE)
+```
+2. Load installed packages
+```
+library(ape)
+library(adegenet)
+library(phangorn)
+```
+3. Loading the sample data and read as phangorn object
+```
+dna <- fasta2DNAbin(file="LOGs_cds_aligned_muscle.fa")
+dna2 <- as.phyDat(dna)
+```
+4. Generating a starting tree for the search on tree space and compute the parsimony of this tree
+```
+tre.ini <- nj(dist.dna(dna,model="raw"))
+parsimony(tre.ini, dna2)
+```
+5. Search for the tree with maximum parsimony
+```
+tre.pars <- optim.parsimony(tre.ini, dna2)
+```
+6. Plot tree
+```
+plot(tre.pars, cex=0.6)
+```
+
