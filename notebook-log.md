@@ -1,23 +1,23 @@
 # Botany 563 project - Repeated evolution of plant prickles
 Prickles are sharp epidermal or cortical outgrowths that have evolved at least 28 times across tracheophytes. The development of prickles in Solanum, as well as other plant genera, is dependent on the co-option of LONELY GUY (LOG) family plant hormone biosynthetic genes, which encode enzymes that catalyze the final step of cytokinin (CK) biosynthesis, a key regulator of cell proliferation. This project aims to reconstruct the phylogenetic tree of LOG protein family and test whether specific subclade of LOG family associated with prickle development have undergone positive selection.
 ## Description of dataset
- I will use LOG protein sequences from at least 28 representative genus with instance of independent prickle evolution. I will obtain my sequences from published genome assembly papers and solpangenomics database (https://solpangenomics.com/dist/pages/downloads/index.php). LOG orthologs will be identified using OrthoFinder. 
+ I use LOG protein sequences from 6 representative families/orders with instance of independent prickle evolution. I obtain my sequences from published genome assembly papers and solpangenomics database (https://solpangenomics.com/dist/pages/downloads/index.php). LOG orthologs will be identified using OrthoFinder. 
 
 | Clade  | Family            | Species  | Prickle state | Genome source |
 | :----- | :----- | :---- | :---- | :---- |
 | Asterids | Solanaceae | *Solanum prinophyllum* | Present | [Satterlee et al., 2024](https://www.science.org/doi/10.1126/science.ado1663)
 | Asterids | Solanaceae | *Solanum lycopersicum* | Absence | [Satterlee et al., 2024](https://www.science.org/doi/10.1126/science.ado1663)
-| Rosids | Vitaceae   | *Vitis romanetii*      | Present | In-house genome assembly
+| Rosids | Vitaceae   | *Vitis romanetii* | Present | In-house genome assembly
 | Rosids | Vitaceae   | *Vitis vinifera* var. Muscat | Absence | In-house genome assembly
-| Rosids | Brassicaceae | *Brassica nigra* Ni100 | Present |ONT assembly [Perumal et al. 2020]([text](https://doi.org/10.1038/s41477-020-0735-y))
-| Rosids | Brassicaceae | *Arabidopsis thaliana* | Absence | Araport11 [Cheng et al., 2017](https://doi.org/10.1111/tpj.13415)
+| Rosids | Cleomaceae (Brassicales) | *Cleome houtteana* | Present | [Cheng et al. 2013](https://doi.org/10.1105/tpc.113.113480)
+| Rosids | Brassicaceae (Brassicales) | *Arabidopsis thaliana* | Absence | Araport11 [Cheng et al., 2017](https://doi.org/10.1111/tpj.13415)
 | Rosids | Rosaceae | *Rosa chinense* | Present | [Hibrand Saint-Oyant et al., 2018](https://doi.org/10.1038/s41477-018-0166-1)
 | Rosids | Rosaceae | *Fragaria vesca* | Absence | [Shulaev et al., 2011]([text](https://doi.org/10.1038/ng.740))
-|   | Rutaceae | *Zanthoxylum piperitum* | Present | 
+| Rosids | Rutaceae | *Zanthoxylum armatum* | Present | [Song et al., 2022](https://doi.org/10.1016/j.hpj.2022.12.014)
+| Rosids | Rutaceae | *Citrus x aurantifolia* | Absence | [Massaro et al., 2025](https://doi.org/10.1093/g3journal/jkaf219)
 | ANA-grade | Nymphaeaceae | *Victoria cruziana* | Present | [Wen et al., 2025]([text](https://doi.org/10.1016/j.xplc.2025.101342))
 | ANA-grade | Nymphaeaceae | *Nymphaea colorata*  | Absence | [Zhang et al., 2020]([text](https://doi.org/10.1038/s41586-019-1852-5))
-| Ferns | Cyatheaceae | *Alsophila spinulosa* | Present | [Huang et al., 2022](https://doi.org/10.1038/s41477-022-01146-6)	
-|   |   |      | Absence | 
+| Angiosperms | Amborellaceae | *Amborella trichopoda* cv. SantaCruz75 HAP1| Absence (outgroup) | [Carey et al., 2024](https://doi.org/10.1038/s41477-024-01858-x)
 
 
 ## OrthoFinder
@@ -188,4 +188,12 @@ tre.pars <- optim.parsimony(tre.ini, dna2)
 ```
 plot(tre.pars, cex=0.6)
 ```
+## Maximum Likelihood
+### IQ-TREE
+IQ-TREE 2 is a package software that infer maximum likelihood (ML) tree. 
+IQ-TREE is not really searching tree space; instead, it keeps a pool of candidate trees, and it constantly evaluates and removes trees from this pool. Maximum likelihood method assumes that the mutation process is the same at every branch of the tree, and all sites evolve the same and independently.
 
+```
+cd /Users/morven/Desktop/Botany563/data
+iqtree2 -s LOGs_aa_aligned_muscle.fa -b 100 -nt AUTO
+```
