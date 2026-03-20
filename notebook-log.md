@@ -12,11 +12,11 @@ Prickles are sharp epidermal or cortical outgrowths that have evolved at least 2
 | Rosids | Cleomaceae (Brassicales) | *Cleome houtteana* | Present | [Cheng et al. 2013](https://doi.org/10.1105/tpc.113.113480)
 | Rosids | Brassicaceae (Brassicales) | *Arabidopsis thaliana* | Absence | Araport11 [Cheng et al., 2017](https://doi.org/10.1111/tpj.13415)
 | Rosids | Rosaceae | *Rosa chinense* | Present | [Hibrand Saint-Oyant et al., 2018](https://doi.org/10.1038/s41477-018-0166-1)
-| Rosids | Rosaceae | *Fragaria vesca* | Absence | [Shulaev et al., 2011]([text](https://doi.org/10.1038/ng.740))
+| Rosids | Rosaceae | *Fragaria vesca* | Absence | [Shulaev et al., 2011](https://doi.org/10.1038/ng.740)
 | Rosids | Rutaceae | *Zanthoxylum armatum* | Present | [Song et al., 2022](https://doi.org/10.1016/j.hpj.2022.12.014)
 | Rosids | Rutaceae | *Citrus x aurantifolia* | Absence | [Massaro et al., 2025](https://doi.org/10.1093/g3journal/jkaf219)
-| ANA-grade | Nymphaeaceae | *Victoria cruziana* | Present | [Wen et al., 2025]([text](https://doi.org/10.1016/j.xplc.2025.101342))
-| ANA-grade | Nymphaeaceae | *Nymphaea colorata*  | Absence | [Zhang et al., 2020]([text](https://doi.org/10.1038/s41586-019-1852-5))
+| ANA-grade | Nymphaeaceae | *Victoria cruziana* | Present | [Wen et al., 2025](https://doi.org/10.1016/j.xplc.2025.101342)
+| ANA-grade | Nymphaeaceae | *Nymphaea colorata*  | Absence | [Zhang et al., 2020](https://doi.org/10.1038/s41586-019-1852-5)
 | Angiosperms | Amborellaceae | *Amborella trichopoda* cv. SantaCruz75 HAP1| Absence (outgroup) | [Carey et al., 2024](https://doi.org/10.1038/s41477-024-01858-x)
 
 
