@@ -1,27 +1,47 @@
 # Botany 563 project - Repeated evolution of plant prickles
 Prickles are sharp epidermal or cortical outgrowths that have evolved at least 28 times across tracheophytes. The development of prickles in Solanum, as well as other plant genera, is dependent on the co-option of LONELY GUY (LOG) family plant hormone biosynthetic genes, which encode enzymes that catalyze the final step of cytokinin (CK) biosynthesis, a key regulator of cell proliferation. This project aims to reconstruct the phylogenetic tree of LOG protein family and test whether specific subclade of LOG family associated with prickle development have undergone positive selection.
 ## Description of dataset
- I use LOG protein sequences from 6 representative families/orders with instance of independent prickle evolution. I obtain my sequences from published genome assembly papers and solpangenomics database (https://solpangenomics.com/dist/pages/downloads/index.php). LOG orthologs will be identified using OrthoFinder. 
+ I use LOG protein sequences from 4 representative families/orders with instance of independent prickle evolution. I obtain my sequences from published genome assembly papers, [solpangenomics database](https://solpangenomics.com/dist/pages/downloads/index.php), and [MarpolBase](https://marchantia.info). LOG orthologs will be identified using OrthoFinder. 
 
 | Clade  | Family            | Species  | Prickle state | Genome source |
 | :----- | :----- | :---- | :---- | :---- |
 | Asterids | Solanaceae | *Solanum prinophyllum* | Present | [Satterlee et al., 2024](https://www.science.org/doi/10.1126/science.ado1663)
 | Asterids | Solanaceae | *Solanum lycopersicum* | Absence | [Satterlee et al., 2024](https://www.science.org/doi/10.1126/science.ado1663)
-| Rosids | Vitaceae   | *Vitis romanetii* | Present | In-house genome assembly
-| Rosids | Vitaceae   | *Vitis vinifera* var. Muscat | Absence | In-house genome assembly
 | Rosids | Cleomaceae (Brassicales) | *Cleome houtteana* | Present | [Cheng et al. 2013](https://doi.org/10.1105/tpc.113.113480)
 | Rosids | Brassicaceae (Brassicales) | *Arabidopsis thaliana* | Absence | Araport11 [Cheng et al., 2017](https://doi.org/10.1111/tpj.13415)
-| Rosids | Rosaceae | *Rosa chinense* | Present | [Hibrand Saint-Oyant et al., 2018](https://doi.org/10.1038/s41477-018-0166-1)
+| Rosids | Rosaceae | *Rosa chinensis* | Present | [Hibrand Saint-Oyant et al., 2018](https://doi.org/10.1038/s41477-018-0166-1)
 | Rosids | Rosaceae | *Fragaria vesca* | Absence | [Shulaev et al., 2011](https://doi.org/10.1038/ng.740)
-| Rosids | Rutaceae | *Zanthoxylum armatum* | Present | [Song et al., 2022](https://doi.org/10.1016/j.hpj.2022.12.014)
-| Rosids | Rutaceae | *Citrus x aurantifolia* | Absence | [Massaro et al., 2025](https://doi.org/10.1093/g3journal/jkaf219)
 | ANA-grade | Nymphaeaceae | *Victoria cruziana* | Present | [Wen et al., 2025](https://doi.org/10.1016/j.xplc.2025.101342)
 | ANA-grade | Nymphaeaceae | *Nymphaea colorata*  | Absence | [Zhang et al., 2020](https://doi.org/10.1038/s41586-019-1852-5)
-| Angiosperms | Amborellaceae | *Amborella trichopoda* cv. SantaCruz75 HAP1| Absence (outgroup) | [Carey et al., 2024](https://doi.org/10.1038/s41477-024-01858-x)
-
+| Angiosperms | Amborellaceae | *Amborella trichopoda* cv. SantaCruz75 HAP1| Absence | [Carey et al., 2024](https://doi.org/10.1038/s41477-024-01858-x)
+| Bryophytes | Marchantiaceae | *Marchantia polymorpha* subsp. *ruderalis* accessions Tak-1/2| Absence (outgroup) | Standard genome v7.1 [MarpolBase](https://marchantia.info)
 
 ## OrthoFinder
 
+### Installation
+```
+conda create -n of3_env python=3.12
+conda activate of3_env
+conda config --add channels defaults
+conda config --add channels bioconda
+conda config --add channels conda-forge
+# close the terminal and open a new one
+conda install orthofinder
+```
+### Pre-process proteomes to get primary transcript
+Download primary_transcript.py from https://github.com/OrthoFinder/OrthoFinder/blob/main/tools/primary_transcript.py.
+Then place it in the proteomes folder that need to be processed.
+Make sure all the proteome files end in .fa
+```
+cd /Users/morven/Desktop/Botany563/data/pre-process_proteomes
+for f in *fa ; do python primary_transcript.py $f ; done
+```
+### Run OrthoFinder (v3.1.4)
+```
+conda activate of3_env
+
+orthofinder -f /Users/morven/Desktop/Botany563/data/primary_proteomes -s /Users/morven/Desktop/Botany563/data/primary_proteomes/species_tree_input.nwk
+```
 
 ## Multiple Sequence Alignment (MSA)
 ### MUSCLE
@@ -29,31 +49,34 @@ Prickles are sharp epidermal or cortical outgrowths that have evolved at least 2
 MUSCLE is a multiple sequence alignment algorithm using progressive alignment with iterative refinement. There could be bias towards the guide tree and we assume that the bias can be neglected. 
 
 ```
-cd /Users/morven/Desktop/Botany563/data
-muscle -align LOGs_aa.fa -output LOGs_aa_aligned_muscle.fa
+cd /Users/morven/Desktop/Botany563/data/alignment
+
+muscle -align OG0000396_LOGs-curated.fa -output OG0000396_LOGs-curated_aligned_muscle.fa
 
 muscle 5.3.osxarm64 []  8.6Gb RAM, 8 cores
 Built Jul 31 2025 00:34:33
 (C) Copyright 2004-2021 Robert C. Edgar.
 https://drive5.com
 
-[align LOGs_aa.fa]
-Input: 29 seqs, avg length 215, max 306, min 77
+[align OG0000396_LOGs-curated.fa]
+Input: 74 seqs, avg length 215, max 249, min 77
 
-00:00 4.2Mb   100.0% Derep 29 uniques, 0 dupes
+00:00 4.0Mb   100.0% Derep 73 uniques, 1 dupes
 00:00 4.2Mb  CPU has 8 cores, running 8 threads
-00:00 190Mb   100.0% Calc posteriors
-00:00 190Mb   100.0% UPGMA5         
-00:00 193Mb   100.0% Consistency (1/2)
-00:00 193Mb   100.0% Consistency (2/2)
-00:00 193Mb   100.0% Refining         
+00:04 203Mb   100.0% Calc posteriors
+00:04 203Mb   100.0% UPGMA5         
+00:04 220Mb   100.0% Consistency (1/2)
+00:04 213Mb   100.0% Consistency (2/2)
+00:04 213Mb   100.0% Refining         
 ```
 ### MAFFT
 
 MAFFT is a multiple sequence alignment algorithm using progressive alignment with iterative refinement. It is based on fast Fourier transform. It is sensitive to guide tree errors.
 
 ```
-mafft --auto LOGs_aa.fa > LOGs_aa_aligned_mafft.fa
+cd /Users/morven/Desktop/Botany563/data/alignment
+
+mafft --auto OG0000396_LOGs-curated.fa > OG0000396_LOGs-curated_aligned_mafft.fa
 
 outputhat23=16
 treein = 0
@@ -73,13 +96,13 @@ rescale = 1
 Gap Penalty = -1.53, +0.00, +0.00
 tbutree = 1, compacttree = 0
 Constructing a UPGMA tree ... 
-   20 / 29
+   70 / 74
 done.
 
 Progressive alignment ... 
-STEP    27 /28 
-Reallocating..done. *alloclen = 1618
-STEP    28 /28 
+STEP    43 /73 
+Reallocating..done. *alloclen = 1513
+STEP    73 /73 
 done.
 tbfast (aa) Version 7.526
 alg=A, model=BLOSUM62, 1.53, -0.00, -0.00, noshift, amax=0.0
@@ -97,10 +120,10 @@ nadd = 16
 Loading 'hat3' ... done.
 rescale = 1
 
-   20 / 29
-Segment   1/  1    1- 395
-STEP 004-009-0  identical.   
-Oscillating.
+   70 / 74
+Segment   1/  1    1- 457
+STEP 003-054-0  identical.   
+Converged.
 
 done
 dvtditr (aa) Version 7.526
@@ -119,6 +142,18 @@ The default gap scoring scheme has been changed in version 7.110 (2013 Oct).
 It tends to insert more gaps into gap-rich regions than previous versions.
 To disable this change, add the --leavegappyregion option.
 ```
+### trimAl - Automated Alignment Trimming 
+trimAl is a tool for automated alignment trimming in large-scale phylogenetic analyses.
+The option *-automated1* uses a heuristic selection of the automatic method based on similarity statistics, which is optimized for Maximum Likelihood phylogenetic tree reconstruction.
+
+```
+cd /Users/morven/Desktop/Botany563/data/alignment
+
+trimal -in OG0000396_LOGs-curated_aligned_muscle.fa -out OG0000396_LOGs-curated_aligned_muscle_trimmed.fa -automated1
+
+trimal -in OG0000396_LOGs-curated_aligned_mafft.fa -out OG0000396_LOGs-curated_aligned_mafft_trimmed.fa -automated1
+```
+
 ## Distance-based methods
 There are algorithms that produce the optimum tree without having to search the space of trees. Thus, the distance-based method is the fastest. However, it could be sensitive to unequal rates of evolution.
 
@@ -190,10 +225,53 @@ plot(tre.pars, cex=0.6)
 ```
 ## Maximum Likelihood
 ### IQ-TREE
-IQ-TREE 2 is a package software that infer maximum likelihood (ML) tree. 
+IQ-TREE 3 is a package software that infer maximum likelihood (ML) tree. 
 IQ-TREE is not really searching tree space; instead, it keeps a pool of candidate trees, and it constantly evaluates and removes trees from this pool. Maximum likelihood method assumes that the mutation process is the same at every branch of the tree, and all sites evolve the same and independently.
 
 ```
-cd /Users/morven/Desktop/Botany563/data
-iqtree2 -s LOGs_aa_aligned_muscle.fa -b 100 -nt AUTO
+cd /Users/morven/Desktop/Botany563/data/iqtree
+iqtree3 -s OG0000396_LOGs-curated_aligned_muscle_trimmed.fa -b 100 -nt AUTO
+```
+
+### RAxML-NG
+
+RAxML-NG v. 2.0.0
+
+```
+cd /Users/morven/Desktop/Botany563/data/raxml
+
+raxml-ng --all --msa OG0000396_LOGs-curated_aligned_muscle_trimmed.fa --model AA --bs-trees 100
+```
+## Bayesian method
+### MrBayes
+MrBayes uses Bayesian phylogenetic inference, which can incorporate prior to build likelihood. Bayesians can overcome the phylogenetic terrace by using prior. It gives a posterior distribution. When posterior distribution needs to be approximated using MCMC, it could be a long process. 
+
+```
+conda activate mrbayes
+```
+create a mrbayes block in a separate text file called mbblock.txt
+```
+begin mrbayes;
+ set autoclose=yes;
+ prset brlenspr=unconstrained:exp(10.0);
+ prset shapepr=exp(1.0);
+ prset tratiopr=beta(1.0,1.0);
+ prset statefreqpr=dirichlet(1.0,1.0,1.0,1.0);
+ lset nst=2 rates=gamma ngammacat=4;
+ mcmcp ngen=10000 samplefreq=10 printfreq=100 nruns=1 nchains=3 savebrlens=yes;
+ outgroup Anacystis_nidulans;
+ mcmc;
+ sumt;
+end;
+```
+Append the MrBayes block to the end of the nexus file with the data algaemb.nex
+```
+cd /Users/morven/Desktop/Botany563/data/mrbayes
+
+cat OG0000396_LOGs-curated_mb.nex mbblock.txt > OG0000396_LOGs-curated_mb-mb.nex
+```
+Execute MrBayes
+
+```
+mb OG0000396_LOGs-curated_mb-mb.nex
 ```
