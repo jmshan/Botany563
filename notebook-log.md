@@ -259,12 +259,12 @@ begin mrbayes;
  prset statefreqpr=dirichlet(1.0,1.0,1.0,1.0);
  lset nst=2 rates=gamma ngammacat=4;
  mcmcp ngen=10000 samplefreq=10 printfreq=100 nruns=1 nchains=3 savebrlens=yes;
- outgroup Anacystis_nidulans;
+ outgroup M_polymorpha_Mp1g00270.1;
  mcmc;
  sumt;
 end;
 ```
-Append the MrBayes block to the end of the nexus file with the data algaemb.nex
+Append the MrBayes block to the end of the nexus file with the data OG0000396_LOGs-curated_mb.nex
 ```
 cd /Users/morven/Desktop/Botany563/data/mrbayes
 
@@ -274,4 +274,17 @@ Execute MrBayes
 
 ```
 mb OG0000396_LOGs-curated_mb-mb.nex
+```
+## Coalescent
+### ASTRAL
+
+ASTRAL algorithm is a coalescent-based method for reconstructing species trees using a set of gene trees.
+Given a set of gene trees, we compute the probability of observing these gene trees under a candidate species tree. We then explore the species tree space by proposing alternative species trees and evaluating their probability based on the collection of gene trees, ultimately identifying the species tree that maximizes this probability. The standard coalescent model assumes constant population. The branch lengths in the species tree are not the actual time; instead, they are measured in coalescent units (e.g., generations scaled by effective population size, g/N). To obtain estimates of the actual time, a separate calibration analysis is required.
+
+The ASTRAL was run using sample dataset *song_mammals.424.gene.tre* from the ASTRAL github.
+
+```
+cd /Applications/Astral
+
+java -jar astral.5.7.8.jar -i test_data/song_mammals.424.gene.tre -o test_data/song-astral.tre
 ```
