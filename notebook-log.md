@@ -169,27 +169,38 @@ library(ape)
 library(adegenet)
 library(phangorn)
 ```
-3. Loading the sample data
+3. Set working directory
 ```
-dna <- fasta2DNAbin(file="LOGs_cds_aligned_muscle.fa")
+setwd("/Users/morven/Desktop/Botany563/data/distance-based")
 ```
-4. Computing the genetic distances. 
+4. Loading the alignment data
 ```
-D <- dist.dna(dna, model="GTR")
+aa <- read.phyDat("OG0000396_LOGs-curated_aligned_muscle_trimmed.fa",
+                  format = "fasta",
+                  type = "AA")
 ```
-5. Get the NJ tree
+5. Computing the pairwise distances
+```
+D <- dist.ml(aa, model="LG")
+```
+6. Get the NJ tree
 ```
 tre <- nj(D)
 ```
-6. To get the ladderized effect when plotting the tree
+7. To get the ladderized effect when plotting the tree
 ```
 tre <- ladderize(tre)
 ```
-7. Plot the tree
+8. Plot the tree
 ```
 plot(tre, cex=.6)
-title("A simple NJ tree")
 ```
+9. Save the NJ tree
+```
+write.tree(tre, file="OG0000396_LOGs-curated_aligned_muscle_trimmed_nj.nwk")
+```
+10. The tree is manually rooted using FigTree v1.4.4 
+
 ## Parsimony method
 Parsimony-based method wants to find a tree with the minimum changes to explain the data we see at the tips of the tree. It assumes that all characters evolve independently. Parsimony-based method could be susceptible to long-branch attraction. 
 
@@ -205,24 +216,31 @@ library(ape)
 library(adegenet)
 library(phangorn)
 ```
-3. Loading the sample data and read as phangorn object
+3. Loading the alignment file and read as phangorn object
 ```
-dna <- fasta2DNAbin(file="LOGs_cds_aligned_muscle.fa")
-dna2 <- as.phyDat(dna)
+aa <- read.phyDat("OG0000396_LOGs-curated_aligned_muscle_trimmed.fa",
+                  format = "fasta",
+                  type = "AA")
 ```
 4. Generating a starting tree for the search on tree space and compute the parsimony of this tree
 ```
-tre.ini <- nj(dist.dna(dna,model="raw"))
-parsimony(tre.ini, dna2)
+tre.ini <- nj(dist.ml(aa, model="LG"))
+parsimony(tre.ini, aa)
 ```
 5. Search for the tree with maximum parsimony
 ```
-tre.pars <- optim.parsimony(tre.ini, dna2)
+tre.pars <- optim.parsimony(tre.ini, aa)
 ```
 6. Plot tree
 ```
 plot(tre.pars, cex=0.6)
 ```
+7. Save the NJ tree
+```
+write.tree(tre, file="OG0000396_LOGs-curated_aligned_muscle_trimmed_pars.nwk")
+```
+10. The tree is manually rooted using FigTree v1.4.4 
+
 ## Maximum Likelihood
 ### IQ-TREE
 IQ-TREE 3 is a package software that infer maximum likelihood (ML) tree. 
@@ -246,34 +264,46 @@ raxml-ng --all --msa OG0000396_LOGs-curated_aligned_muscle_trimmed.fa --model AA
 ### MrBayes
 MrBayes uses Bayesian phylogenetic inference, which can incorporate prior to build likelihood. Bayesians can overcome the phylogenetic terrace by using prior. It gives a posterior distribution. When posterior distribution needs to be approximated using MCMC, it could be a long process. 
 
+**File format convertion**
+
+Convert alignment file (.fasta) to the NEXUS multiple alignment format (.nex) using seqmagick
+
+Installation
 ```
-conda activate mrbayes
+pip install seqmagick
 ```
-create a mrbayes block in a separate text file called mbblock.txt
+Convert fasta file to nexus file
+```
+cd /Users/morven/Desktop/Botany563/data/bayesian
+
+seqmagick convert --output-format nexus --alphabet protein OG0000396_LOGs-curated_aligned_muscle_trimmed.fa OG0000396_LOGs-curated_aligned_muscle_trimmed.nex
+```
+
+Create a mrbayes block in a separate text file called mbblock.txt
 ```
 begin mrbayes;
  set autoclose=yes;
- prset brlenspr=unconstrained:exp(10.0);
- prset shapepr=exp(1.0);
- prset tratiopr=beta(1.0,1.0);
- prset statefreqpr=dirichlet(1.0,1.0,1.0,1.0);
- lset nst=2 rates=gamma ngammacat=4;
- mcmcp ngen=10000 samplefreq=10 printfreq=100 nruns=1 nchains=3 savebrlens=yes;
+ prset aamodelpr=fixed(jones);
+ lset rates=invgamma ngammacat=4;
+ mcmcp ngen=1500000 samplefreq=100 printfreq=1000 nruns=2 nchains=4 savebrlens=yes;
  outgroup M_polymorpha_Mp1g00270.1;
  mcmc;
+ sump;
  sumt;
 end;
 ```
-Append the MrBayes block to the end of the nexus file with the data OG0000396_LOGs-curated_mb.nex
+Append the MrBayes block to the end of the nexus file with the data OG0000396_LOGs-curated_aligned_muscle_trimmed.nex
 ```
-cd /Users/morven/Desktop/Botany563/data/mrbayes
+cd /Users/morven/Desktop/Botany563/data/bayesian
 
-cat OG0000396_LOGs-curated_mb.nex mbblock.txt > OG0000396_LOGs-curated_mb-mb.nex
+cat OG0000396_LOGs-curated_aligned_muscle_trimmed.nex mbblock.txt > OG0000396_LOGs-curated_aligned_muscle_trimmed-mb.nex
 ```
 Execute MrBayes
 
 ```
-mb OG0000396_LOGs-curated_mb-mb.nex
+conda activate mrbayes
+
+mb OG0000396_LOGs-curated_aligned_muscle_trimmed-mb.nex
 ```
 ## Coalescent
 ### ASTRAL
