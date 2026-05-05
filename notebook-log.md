@@ -1,5 +1,6 @@
 # Botany 563 project - Repeated evolution of plant prickles
-Prickles are sharp epidermal or cortical outgrowths that have evolved at least 28 times across tracheophytes. The development of prickles in Solanum, as well as other plant genera, is dependent on the co-option of LONELY GUY (LOG) family plant hormone biosynthetic genes, which encode enzymes that catalyze the final step of cytokinin (CK) biosynthesis, a key regulator of cell proliferation. This project aims to reconstruct the phylogenetic tree of LOG protein family and test whether specific subclade of LOG family associated with prickle development have undergone positive selection.
+Prickles are sharp epidermal or cortical outgrowths that have evolved at least 28 times across tracheophytes. The development of prickles in *Solanum*, as well as other plant genera, is dependent on the co-option of *LONELY GUY* (*LOG*) family plant hormone biosynthetic genes, which encode enzymes that catalyze the final step of cytokinin (CK) biosynthesis, a key regulator of cell proliferation. This project aims to reconstruct the phylogenetic tree of LOG protein family and test whether specific subclade of LOG family associated with prickle development have undergone positive selection.
+
 ## Description of dataset
  I use LOG protein sequences from 4 representative families/orders with instance of independent prickle evolution. I obtain my sequences from published genome assembly papers, [solpangenomics database](https://solpangenomics.com/dist/pages/downloads/index.php), and [MarpolBase](https://marchantia.info). LOG orthologs will be identified using OrthoFinder. 
 
@@ -17,6 +18,7 @@ Prickles are sharp epidermal or cortical outgrowths that have evolved at least 2
 | Bryophytes | Marchantiaceae | *Marchantia polymorpha* subsp. *ruderalis* accessions Tak-1/2| Absence (outgroup) | Standard genome v7.1 [MarpolBase](https://marchantia.info)
 
 ## OrthoFinder
+The OrthoFinder uses gene trees during ortholog inferences, which allows high-accuracy inferences and the examination of every orthologous relationship in the tree. The updated version of OrthoFinder further incorporates the species trees inferences using gene trees, followed by duplication-loss-coalescence analysis to detect gene duplication events. 
 
 ### Installation
 ```
@@ -242,44 +244,181 @@ write.tree(tre, file="OG0000396_LOGs-curated_aligned_muscle_trimmed_pars.nwk")
 10. The tree is manually rooted using FigTree v1.4.4 
 
 ## Maximum Likelihood
-### IQ-TREE
-IQ-TREE 3 is a package software that infer maximum likelihood (ML) tree. 
-IQ-TREE is not really searching tree space; instead, it keeps a pool of candidate trees, and it constantly evaluates and removes trees from this pool. Maximum likelihood method assumes that the mutation process is the same at every branch of the tree, and all sites evolve the same and independently.
+Both IQ-TREE and RAxML-NG are package softwares that infer maximum likelihood (ML) tree. Maximum likelihood method assumes that the mutation process is the same at every branch of the tree, and all sites evolve the same and independently. Both assumes that the input alignment is correctly aligned. Specifically, IQ-TREE is not really searching tree space; instead, it keeps a pool of candidate trees, and it constantly evaluates and removes trees from this pool with stochastic NNI, which make it more computationally efficiently than RAxML. 
 
+### IQ-TREE 3
+#### Installation
+Download `iqtree-3.1.1-macOS` from [IQ-Tree Website](https://iqtree.github.io/)
+```
+sudo mv /Users/morven/Downloads/iqtree-3.1.1-macOS /Applications/
+cd /Applications/iqtree-3.1.1-macOS/bin
+sudo cp iqtree3 /usr/local/bin
+```
+#### Execution
 ```
 cd /Users/morven/Desktop/Botany563/data/iqtree
 iqtree3 -s OG0000396_LOGs-curated_aligned_muscle_trimmed.fa -b 100 -nt AUTO
 ```
 
-### RAxML-NG
+### RAxML-NG v. 2.0.0
+#### Installation
 
-RAxML-NG v. 2.0.0
+Click `Download 64-bit macOS binary1` to download `raxml-ng_v2.0.0_macos.zip` from [raxml-ng](https://github.com/amkozlov/raxml-ng) github.
 
+```
+sudo mv /Users/morven/Downloads/raxml-ng_v2.0.0_macos /Applications/
+cd /Applications/raxml-ng_v2.0.0_macos
+ls # check the raxml-ng executable is there
+sudo cp raxml-ng /usr/local/bin
+```
+#### Execution
 ```
 cd /Users/morven/Desktop/Botany563/data/raxml
 
 raxml-ng --all --msa OG0000396_LOGs-curated_aligned_muscle_trimmed.fa --model AA --bs-trees 100
 ```
+### Visualization and comparisons of two ML trees in R
+```
+# Load libraries
+library(treeio)    # read.raxml(), read.iqtree(), root methods for treedata
+library(ggtree)    # plotting and geom_*2 helpers
+library(ape)       # read.tree, comparePhylo if desired
+library(phytools)  # cophylo tanglegram plotting
+library(phangorn)  # RF.dist (Robinson-Foulds) and other tree distances
+library(ggplot2)
+
+# Set working directory 
+setwd("/Users/morven/Desktop/Botany563/data/maximum-likelihood/tree-visual")
+
+# RAxML tree with bootstrap values
+raxml_td <- read.iqtree("OG0000396_LOGs-curated_aligned_muscle_trimmed.fa.raxml.support")
+raxml_phy <- as.phylo(raxml_td)  # convert to phylo object
+
+# IQ-TREE tree with bootstrap
+iq_td <- read.iqtree("OG0000396_LOGs-curated_aligned_muscle_trimmed.fa.treefile")
+iq_phy <- as.phylo(iq_td)
+
+raxml_rooted <- root(raxml_phy, outgroup = c("M_polymorpha_Mp1g00270.1"), resolve.root = TRUE)
+iq_rooted    <- root(iq_phy, outgroup = c("M_polymorpha_Mp1g00270.1"), resolve.root = TRUE)
+
+raxml_rooted <- ladderize(raxml_rooted, right = FALSE)
+iq_rooted    <- ladderize(iq_rooted, right = FALSE)
+
+extract_bs <- function(tree) {
+  if(is.null(tree$node.label)) return(NULL)
+  as.numeric(tree$node.label)
+}
+
+raxml_bs <- extract_bs(raxml_rooted)
+iq_bs    <- extract_bs(iq_rooted)
+
+# Create ggtree objects
+p1 <- ggtree(raxml_rooted) +
+  geom_tiplab(size = 3) +
+  geom_point2(aes(subset = !isTip & !is.na(label),
+                  size = as.numeric(label)), color = "#FDD0A2AA") +
+  geom_text2(aes(subset = !isTip & !is.na(label),
+                 label = label), hjust=0.5, vjust=0.5, size=3) +
+  scale_size_continuous(range=c(2,4)) +  # adjust circle sizes
+  ggtitle("RAxML Tree")+
+  guides(size = guide_legend(title = "Bootstrap support")) +
+  xlim_tree(1)
+
+p2 <- ggtree(iq_rooted) +
+  geom_tiplab(size = 3) +
+  geom_point2(aes(subset = !isTip & !is.na(label),
+                  size = as.numeric(label)), color = "#4DBBD5AA") +
+  geom_text2(aes(subset = !isTip & !is.na(label),
+                 label = label), hjust=0.5, vjust=0.5, size=3) +
+  scale_size_continuous(range=c(2,4)) +  # adjust circle sizes
+  ggtitle("IQ-TREE Tree")+
+  guides(size = guide_legend(title = "Bootstrap support")) +
+  xlim_tree(1)
+
+# Side-by-side layout
+p1 + p2 + plot_layout(ncol = 2)
+
+final_plot <- p1 + p2 + plot_layout(ncol = 2)
+
+png("RAxML_vs_IQTREE.png",
+    width = 5000,
+    height = 3000,
+    res = 350)
+
+print(final_plot)
+
+dev.off()
+```
+Comparing tree topologies to highlight clades uniquely shown by each inference method.
+```
+splits1 <- prop.part(raxml_rooted)
+splits2 <- prop.part(iq_rooted)
+
+split_labels1 <- sapply(splits1, function(x) sort(raxml_rooted$tip.label[x]))
+split_labels2 <- sapply(splits2, function(x) sort(iq_rooted$tip.label[x]))
+
+unique_to_raxml_rooted <- setdiff(split_labels1, split_labels2)
+unique_to_iq_rooted <- setdiff(split_labels2, split_labels1)
+
+p1 <- ggtree(raxml_rooted) + geom_tiplab(size = 2)
+p2 <- ggtree(iq_rooted) + geom_tiplab(size = 2)
+
+get_conflict_nodes <- function(tree, splits_unique) {
+  nodes <- c()
+  for (clade in splits_unique) {
+    tips <- unlist(clade)
+    node <- getMRCA(tree, tips)
+    nodes <- c(nodes, node)
+  }
+  unique(nodes)
+}
+
+nodes1 <- get_conflict_nodes(raxml_rooted, unique_to_raxml_rooted)
+nodes2 <- get_conflict_nodes(iq_rooted, unique_to_iq_rooted)
+
+p1 <- ggtree(raxml_rooted) +
+  geom_tiplab(size = 2) +
+  geom_hilight(node = nodes1, fill = "#FDD0A2AA", alpha = 0.3) +
+  ggtitle("RAxML (conflicting clades highlighted)") +
+  xlim_tree(1)
+
+p2 <- ggtree(iq_rooted) +
+  geom_tiplab(size = 2) +
+  geom_hilight(node = nodes2, fill = "#4DBBD5AA", alpha = 0.3) +
+  ggtitle("IQ-TREE (conflicting clades highlighted)") +
+  xlim_tree(1)
+
+p1 + p2 + plot_layout(ncol = 2)
+
+ggsave("tree_compare.png",
+       width = 10,
+       height = 6,
+       dpi = 300)
+```
+
 ## Bayesian method
 ### MrBayes
 MrBayes uses Bayesian phylogenetic inference, which can incorporate prior to build likelihood. Bayesians can overcome the phylogenetic terrace by using prior. It gives a posterior distribution. When posterior distribution needs to be approximated using MCMC, it could be a long process. 
-
-**File format convertion**
+#### Intallation
+```
+conda install -c bioconda mrbayes
+```
+#### File format convertion
 
 Convert alignment file (.fasta) to the NEXUS multiple alignment format (.nex) using seqmagick
 
-Installation
+1. Installation
 ```
 pip install seqmagick
 ```
-Convert fasta file to nexus file
+2. Convert fasta file to nexus file
 ```
 cd /Users/morven/Desktop/Botany563/data/bayesian
 
 seqmagick convert --output-format nexus --alphabet protein OG0000396_LOGs-curated_aligned_muscle_trimmed.fa OG0000396_LOGs-curated_aligned_muscle_trimmed.nex
 ```
 
-Create a mrbayes block in a separate text file called mbblock.txt
+#### Create a mrbayes block in a separate text file called mbblock.txt
 ```
 begin mrbayes;
  set autoclose=yes;
@@ -292,19 +431,21 @@ begin mrbayes;
  sumt;
 end;
 ```
-Append the MrBayes block to the end of the nexus file with the data OG0000396_LOGs-curated_aligned_muscle_trimmed.nex
+#### Append the MrBayes block to the end of the nexus file with the data OG0000396_LOGs-curated_aligned_muscle_trimmed.nex
 ```
 cd /Users/morven/Desktop/Botany563/data/bayesian
 
 cat OG0000396_LOGs-curated_aligned_muscle_trimmed.nex mbblock.txt > OG0000396_LOGs-curated_aligned_muscle_trimmed-mb.nex
 ```
-Execute MrBayes
+#### Execute MrBayes
 
 ```
 conda activate mrbayes
 
 mb OG0000396_LOGs-curated_aligned_muscle_trimmed-mb.nex
 ```
+***Note**: The resulting tracer plots appeared irregular despite testing multiple parameter settings. Thus, BEAST was used instead for Bayesian method.* 
+
 ## Coalescent
 ### ASTRAL
 
@@ -313,8 +454,66 @@ Given a set of gene trees, we compute the probability of observing these gene tr
 
 The ASTRAL was run using sample dataset *song_mammals.424.gene.tre* from the ASTRAL github.
 
+#### Installation
+Installed ASTRAL by following this [instruction](https://github.com/smirarab/ASTRAL). Downloaded `Astral.5.7.8.zip`, extracted the content, and moved to the `/Application` folder.
+
+#### Execution
 ```
 cd /Applications/Astral
 
 java -jar astral.5.7.8.jar -i test_data/song_mammals.424.gene.tre -o test_data/song-astral.tre
 ```
+## Co-estimation
+
+### BEAST
+BEAST (Bayesian Evolutionary Analyses by Sampling Trees) is a package for performing Bayesian inference using MCMC. We input sequence alignment, and the program estimates the gene tree and species tree at the same time, which considers the estimation errors. The algorithm assumes that the input data is correct, every site is evolving independently, and mutation rate is linear proportion to time. However, BEAST cannot handle too many taxa, thus, not very scalable. 
+
+#### Installation
+Download BEAST 2 (version 2.7.8) software from [BEAST Website](https://www.beast2.org/). 
+
+#### Creating the Analysis File (in XML format) with `BEAUti`
+1. Begin by starting BEAUti2
+2. Importing the alignment
+3. Under `Site Model` tab:
+   - Subsitution rate = 1 and check box for estimate
+   - Gamma Category Count = 4
+   - Shape = 1 and check box for estimate
+   - Proportion Invariant = 0
+   - Subst Model = JTT
+4. Under `Priors` tab:
+   - Tree.t = Yule Model
+   - birthRate.t = Uniform[0.0,Infinity]; initial = [1.0][0.0,Infinity]
+   - gammaShape.s = Exponential[1.0]; initial = [1.0][0.1,Infinity]
+5. Under `MCMC` tab:
+   - Set the Chain Length to 1000000
+   - Expand the tracelog options
+      - Set the Log Every parameter to 200
+      - Leave the filename as is ($(filebase).log)
+   - Expand the screenlog options
+      - Leave the Log Every parameter at the default value of 1000
+   - Expand the treelog.t options
+      - Set the File Name to OG0000396_LOGs-curated_aligned_muscle_trimmed.trees
+      - Leave the Log Every parameter at the default value of 1000
+6. Generating the XML file using File > Save
+
+#### Running the analysis with `BEAST2`
+1. Select OG0000396_LOGs-curated_aligned_muscle_trimmed.xml file as input file
+2. Set the Random number seed to 777 
+3. Run BEAST2 by clicking the Run button
+
+#### Analysing the results with `Tracer`
+File > Import Trace File…, then locate and click on OG0000396_LOGs-curated_aligned_muscle_trimmed.log
+
+#### Producing MCC tree with `TreeAnnotator`
+1. Open TreeAnnotator
+2. Set the Burnin percentage to 10 to discard the first 10% of trees in the log file
+3. Leave the Posterior probability limit at the default value of 0
+4. Leave the Target tree type at the default value of Maximum clade credibility tree
+5. Select Mean heights in the Node heights drop-down menu
+6. Click Choose File next to Input Tree File and choose OG0000396_LOGs-curated_aligned_muscle_trimmed.trees
+7. Set the Output File to OG0000396_LOGs-curated_aligned_muscle_trimmed.MCC.tree.
+8. Run the program
+
+#### Visualising the MCC tree in `FigTree`
+1. Check the Node Bars checkbox, expand the options and select height_95%_HPD from the Display drop-down menu.
+2. Check the Node Labels checkbox, expand the options and select posterior from the Display drop-down menu.
