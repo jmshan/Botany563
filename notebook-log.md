@@ -38,7 +38,12 @@ Make sure all the proteome files end in .fa
 cd /Users/morven/Desktop/Botany563/data/pre-process_proteomes
 for f in *fa ; do python primary_transcript.py $f ; done
 ```
-### Run OrthoFinder (v3.1.4)
+### Run OrthoFinder (v3.1.4) with user-specified rooted species tree
+#### Construct rooted species tree file `species_tree_input.nwk`
+```
+(M_polymorpha,(A_trichopoda,((N_colorata,V_cruziana),(((C_houtteana,A_thaliana),(R_chinensis,F_vesca)),(S_prinophyllum,S_lycopersicum)))));
+```
+#### Execute OrthoFinder
 ```
 conda activate of3_env
 
